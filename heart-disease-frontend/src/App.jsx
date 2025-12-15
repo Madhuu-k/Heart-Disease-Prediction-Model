@@ -1,4 +1,5 @@
 import { useState } from "react";
+import './App.css';
 
 export default function Model() {
   const LABELS = {
@@ -18,6 +19,16 @@ export default function Model() {
   heartRate: "Heart Rate",
   glucose: "Glucose Level"
 };
+const REQUIRED_FIELDS = [
+  "age",
+  "totChol",
+  "sysBP",
+  "diaBP",
+  "BMI",
+  "heartRate",
+  "glucose"
+];
+
 
 const BINARY_FIELDS = [
   "male",
@@ -100,8 +111,13 @@ const FIELD_GROUPS = {
     }
   };
 
+  const isFormValid = REQUIRED_FIELDS.every(
+  key => formData[key] !== "" && formData[key] >= 0
+  );
+
+
   return(
-     <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+     <div className="container">
         <h2>Heart Disease Predictor</h2>
 
         {Object.entries(FIELD_GROUPS).map(([groupName, fields]) => (
@@ -139,18 +155,31 @@ const FIELD_GROUPS = {
 ))}
 
 
-        <button onClick={handlePredict} disabled={loading}>
+        <button onClick={handlePredict} disabled={loading || !isFormValid} >
           { loading ? "Predicting..." : "Predict"}
         </button>
+
+        {!isFormValid && (
+          <p style={{ color: "#dc2626", fontSize: "13px", marginTop: "8px" }}>
+            Please fill all required fields with valid values.
+          </p>
+        )}
 
         { error && <p style={{ color: "red" }}>{error}</p>}
 
         { result && (
-          <div style={{ marginTop: "20px"}}> 
+          <div className="result"> 
               <h3>Prediction Results </h3>
               <p><b>Risk: </b>{result.risk}</p>
               <p><b>Probability: </b>{result.probability}</p>
-              <p><b>Threshold: </b>{result.threshold} </p>
+              <div className="progress-container"> 
+                <div 
+                className="progress-bar"
+                style={{width: `${result.probability * 100}%`}}
+                > 
+                  {(result.probability * 100).toFixed(1)}%
+                </div>
+              </div>
           </div>
         )}
      </div>
