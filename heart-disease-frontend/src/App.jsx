@@ -1,7 +1,16 @@
 import { useState } from "react";
 import './App.css';
+import Landing from "./components/Landing";
+import PersonalInfo from "./components/steps/PersonalInfo";
+import Lifestyle from "./components/steps/LifeStyle";
+import MedicalHistory from "./components/steps/MedicalHistory";
+import Vitals from "./components/steps/Vitals";
+import Result from "./components/Result";
+
 
 export default function Model() {
+  const[step, setStep] = useState(0);
+
   const LABELS = {
   male: "Male",
   age: "Age (years)",
@@ -117,71 +126,51 @@ const FIELD_GROUPS = {
 
 
   return(
-     <div className="container">
-        <h2>Heart Disease Predictor</h2>
+    <div className="container">
+        <StepIndicator step={step}/>
 
-        {Object.entries(FIELD_GROUPS).map(([groupName, fields]) => (
-  <div key={groupName} style={{ marginBottom: "25px" }}>
-    <h3>{groupName}</h3>
-
-    {fields.map((key) => (
-      <div key={key} style={{ marginBottom: "10px" }}>
-        <label style={{ fontWeight: "bold" }}>
-          {LABELS[key]}
-        </label>
-
-        {BINARY_FIELDS.includes(key) ? (
-          <select
-            name={key}
-            value={formData[key]}
+        {step == 0 && <Landing onStart={() => setStep(1)} />}
+        
+        {step ==0 && (
+          <PersonalInfo 
+            data={formData}
             onChange={handleChange}
-            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-          >
-            <option value={0}>No</option>
-            <option value={1}>Yes</option>
-          </select>
-        ) : (
-          <input
-            type="number"
-            name={key}
-            value={formData[key]}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            onNext={() => setStep(2)}
           />
         )}
-      </div>
-    ))}
-  </div>
-))}
 
-
-        <button onClick={handlePredict} disabled={loading || !isFormValid} >
-          { loading ? "Predicting..." : "Predict"}
-        </button>
-
-        {!isFormValid && (
-          <p style={{ color: "#dc2626", fontSize: "13px", marginTop: "8px" }}>
-            Please fill all required fields with valid values.
-          </p>
+        {step == 2 && (
+          <Lifestyle 
+            data={formData}
+            onChange={handleChange}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+          />
         )}
 
-        { error && <p style={{ color: "red" }}>{error}</p>}
-
-        { result && (
-          <div className="result"> 
-              <h3>Prediction Results </h3>
-              <p><b>Risk: </b>{result.risk}</p>
-              <p><b>Probability: </b>{result.probability}</p>
-              <div className="progress-container"> 
-                <div 
-                className="progress-bar"
-                style={{width: `${result.probability * 100}%`}}
-                > 
-                  {(result.probability * 100).toFixed(1)}%
-                </div>
-              </div>
-          </div>
+        {step == 3 && (
+          <MedicalHistory 
+            data={formData}
+            onChange={handleChange}
+            onNext={() => setStep(4)}
+            onBack={() => setStep(2)}
+          />
         )}
-     </div>
+
+        {step == 4 && (
+          <Vitals 
+            data={formData}
+            onChange={handleChange}
+            onSubmit={handlePredict}
+            onNext={() => setStep(5)}
+            onBack={() => setStep(3)}
+            loading={loading}
+          />
+        )}
+
+        {step == 5 && result && (
+          <Result result={result} onRestart={() => setStep(0)} />
+        )}
+    </div>
   );
 }
