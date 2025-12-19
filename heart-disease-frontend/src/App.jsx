@@ -6,6 +6,7 @@ import Lifestyle from "./components/steps/LifeStyle";
 import MedicalHistory from "./components/steps/MedicalHistory";
 import Vitals from "./components/steps/Vitals";
 import Result from "./components/Result";
+import StepIndicator from "./components/StepIndicator";
 
 
 export default function Model() {
@@ -19,6 +20,7 @@ export default function Model() {
   cigsPerDay: "Cigarettes per Day",
   BPMeds: "BP Medications",
   prevalentStroke: "History of Stroke",
+  
   prevalentHyp: "Hypertension",
   diabetes: "Diabetes",
   totChol: "Total Cholesterol (mg/dL)",
@@ -87,10 +89,19 @@ const FIELD_GROUPS = {
 
   const handleChange = (e) => {
     const {name, value} = e.target;
-    setFormData(prev => ({
+    setFormData(prev => {
+      if (name === "currentSmoker" && Number(value) === 0) {
+      return {
+        ...prev,
+        currentSmoker: 0,
+        cigsPerDay: 0
+      };
+    }
+
+    return {
       ...prev,
-      [name] : value === "" ? "" : Number(value)
-    }));
+      [name]: value === "" ? "" : Number(value)
+    };});
   };
 
   const handlePredict = async () => {
@@ -113,6 +124,7 @@ const FIELD_GROUPS = {
 
       const data = await res.json();
       setResult(data);
+      setStep(5);
     } catch(err) {
       setError("Prediction Failed. Recheck Flask Servers", err)
     } finally{
@@ -131,7 +143,7 @@ const FIELD_GROUPS = {
 
         {step == 0 && <Landing onStart={() => setStep(1)} />}
         
-        {step ==0 && (
+        {step == 1 && (
           <PersonalInfo 
             data={formData}
             onChange={handleChange}
@@ -162,7 +174,6 @@ const FIELD_GROUPS = {
             data={formData}
             onChange={handleChange}
             onSubmit={handlePredict}
-            onNext={() => setStep(5)}
             onBack={() => setStep(3)}
             loading={loading}
           />
