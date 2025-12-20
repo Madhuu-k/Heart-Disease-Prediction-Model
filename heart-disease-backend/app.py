@@ -16,39 +16,33 @@ def home() :
 def predict():
     try:
         data = request.get_json()
+        FEATURE_ORDER = [ "male", "age", "education", "currentSmoker", "cigsPerDay", 
+                         "BPMeds", "prevalentStroke", "prevalentHyp", "diabetes",
+                         "totChol", "sysBP", "diaBP", "BMI", "heartRate", "glucose"
+                        ]
         
-        features = [
-            data["male"],
-            data["age"],
-            data["education"],
-            data["currentSmoker"],
-            data["cigsPerDay"],
-            data["BPMeds"],
-            data["prevalentStroke"],
-            data["prevalentHyp"],
-            data["diabetes"],
-            data["totChol"],
-            data["sysBP"],
-            data["diaBP"],
-            data["BMI"],
-            data["heartRate"],
-            data["glucose"]
-        ]
+        features = []
+        for fieled in FEATURE_ORDER:
+            value = data.get(fieled, 0)
+            
+            if value in ("", None):
+                value = 0
+                
+            features.append(float(value))
+
 
         x = np.array(features).reshape(1, -1)
         
         probability = model.predict_proba(x)[0][1]
         
-        if probability < 0.3:
-            risk = "Low"
-        elif probability < 0.6:
-            risk = "Medium"
-        else:
-            risk = "High"
+        risk = ("low" if probability < 0.3
+                else "Medium" if probability < 0.6
+                else "High"
+            )
             
         return jsonify({
-            "Risk" : risk,
-            "Probability": round(float(probability), 3)
+            "risk" : risk,
+            "probability": round(float(probability), 3)
         })
         
     except Exception as e:
